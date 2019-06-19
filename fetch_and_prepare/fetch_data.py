@@ -1,8 +1,7 @@
 from requests import get
 from zipfile import ZipFile, BadZipFile
 import logging
-from os import path, rename
-import re
+from os import path, rename, remove
 
 class FetchData():
     # from http://www.seanlahman.com/baseball-archive/statistics/
@@ -29,9 +28,9 @@ class FetchData():
                 self.logger.error('Got bad status code ({}) from url: {} '.format(
                         str(r.status_code), self.url))
                 raise RuntimeError('Got bad status code: ' + str(r.status_code))
-            for chunk in r.iter_content():
+            for chunk in r.iter_content(chunk_size=512):
                 progress = (current_filesize/filesize) * 100
-                print('{:8.2f}%       '.format(progress, end='\r'))
+                print('{:8.2f}%       '.format(progress), end='\r')
                 current_filesize += (zipfile.write(chunk) / 1000000)
             self.logger.info('finished downloading file: {}'.format(self.zip_path))
     
@@ -45,9 +44,11 @@ class FetchData():
                 unzip_path = zip_file.namelist()[0]
                 zip_file.extractall()
                 rename(unzip_path, self.output_dir)
-        except BadZipFile as e:
-            self.logger.error('Bad zip file: ' + str(e))
-            raise RuntimeError('Bad zipfile')
+        except BadZipFile:
+            self.logger.error('Bad zip file. Redownloading file.')
+            remove(self.zip_path)
+            self._download()
+            self._unzip()
 
 
 if __name__ == '__main__':
