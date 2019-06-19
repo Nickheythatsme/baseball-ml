@@ -1,3 +1,7 @@
+'''
+the headers for each CSV file can be read about here:
+https://github.com/chadwickbureau/baseballdatabank/blob/master/core/readme2014.txt
+'''
 from os import path, getcwd
 import csv
 
