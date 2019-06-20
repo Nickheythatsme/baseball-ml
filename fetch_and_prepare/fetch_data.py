@@ -21,7 +21,10 @@ class FetchData():
             return
         with open(self.zip_path, 'wb') as zipfile:
             r = get(self.url, stream=True)
-            filesize = float(r.headers['content-length'])/1000000
+            if 'content-length' in r.headers:
+                filesize = float(r.headers['content-length'])/1000000
+            else:
+                filesize = 0
             current_filesize = 0.0
             self.logger.info('starting zipfile download: {:2.2} MB'.format(filesize))
             if r.status_code >= 300 or r.status_code < 200:
